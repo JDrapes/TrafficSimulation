@@ -80,25 +80,25 @@ auto lastUpdate = std::chrono::system_clock::now();
 auto lastChange = std::chrono::system_clock::now();
 
 //Declare
+
+//Suggested use of std::mt19937 - something to look into
 float cycleDuration = maxCycle + static_cast<float> (rand())/(static_cast<float> (RAND_MAX/(maxCycle-minCycle)));;
 //Infinite loop
     while(true){
-
-long timeSinceChange = std::chrono::duration_cast<std::chrono::milliseconds>(lastUpdate - lastChange).count();
+std::this_thread::sleep_for(std::chrono::milliseconds(1));
+long timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(lastUpdate - lastChange).count();
 
         //If lights green then make it red
-        if(_currentPhase == TrafficLightPhase::green && (timeSinceChange > cycleDuration)){
+        if(_currentPhase == TrafficLightPhase::green && (timeSinceLastUpdate >= cycleDuration)){
             _currentPhase = TrafficLightPhase::red;
             //send w move semantics
               TrafficLightPhaseMsgQueue.send(std::move(TrafficLightPhase::red));
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             lastChange = std::chrono::system_clock::now(); //Reset clock
         //If lights red then make it greeen 
-        } else if (_currentPhase == TrafficLightPhase::red && (timeSinceChange > cycleDuration)){
+        } else if (_currentPhase == TrafficLightPhase::red && (timeSinceLastUpdate >= cycleDuration)){
             _currentPhase = TrafficLightPhase::green;
             //send w move semantics
             TrafficLightPhaseMsgQueue.send(std::move(TrafficLightPhase::green));
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             lastChange = std::chrono::system_clock::now(); //Reset clock
         }
         lastUpdate = std::chrono::system_clock::now();
